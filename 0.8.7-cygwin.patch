@@ -1,0 +1,82 @@
+--- origsrc/gsmartcontrol-0.8.7/autoconf.m4/app_compiler_options.m4	2011-11-20 04:05:39.000000000 -0600
++++ src/gsmartcontrol-0.8.7/autoconf.m4/app_compiler_options.m4	2013-07-05 18:26:20.323112900 -0500
+@@ -50,8 +50,7 @@ AC_DEFUN([APP_COMPILER_OPTIONS], [
+ 		# gcc (or clang) / gnu environment, mingw, cygwin.
+ 		if test "x$app_cv_compiler_common_options" = "xgnu" ||  test "x$app_cv_compiler_common_options" = "xclang"; then
+ 
+-			if test "x$app_cv_target_os_env" = "xmingw32" || test "x$app_cv_target_os_env" = "xmingw64" \
+-					|| test "x$app_cv_target_os_env" = "xcygwin"; then
++			if test "x$app_cv_target_os_env" = "xmingw32" || test "x$app_cv_target_os_env" = "xmingw64"; then
+ 				# mingw gcc options:
+ 				# -mno-cygwin - generate non-cygwin executables in cygwin's mingw.
+ 				# -mms-bitfields - make structures compatible with msvc. recommended default for non-cygwin.
+@@ -244,8 +243,7 @@ AC_DEFUN([APP_COMPILER_OPTIONS], [
+ 		fi
+ 	fi
+ 
+-	if test "x$app_cv_target_os_env" = "xmingw32" || test "x$app_cv_target_os_env" = "xmingw64" \
+-			|| test "x$app_cv_target_os_env" = "xcygwin"; then
++	if test "x$app_cv_target_os_env" = "xmingw32" || test "x$app_cv_target_os_env" = "xmingw64"; then
+ 		if test "x$app_cv_compiler_windows_console" = "xno"; then
+ 			app_cv_compiler_options_ldflags="$app_cv_compiler_options_ldflags -mwindows";
+ 		else
+--- origsrc/gsmartcontrol-0.8.7/src/applib/storage_detector.cpp	2012-02-19 06:58:07.000000000 -0600
++++ src/gsmartcontrol-0.8.7/src/applib/storage_detector.cpp	2013-07-05 18:53:46.691279700 -0500
+@@ -35,11 +35,11 @@ std::string StorageDetector::detect(std:
+ 
+ 	// Try each one and move to next if it fails.
+ 
+-#if defined CONFIG_KERNEL_LINUX
++#if defined CONFIG_KERNEL_LINUX || defined __CYGWIN__
+ 
+ 	error_msg = detect_drives_linux(all_detected, ex_factory);  // linux /proc/partitions as fallback.
+ 
+-#elif defined CONFIG_KERNEL_FAMILY_WINDOWS
++#elif defined _WIN32
+ 
+ 	error_msg = detect_drives_win32(all_detected, ex_factory);  // win32
+ 
+--- origsrc/gsmartcontrol-0.8.7/src/applib/storage_detector_linux.cpp	2012-08-10 04:14:50.000000000 -0500
++++ src/gsmartcontrol-0.8.7/src/applib/storage_detector_linux.cpp	2013-07-05 18:51:35.650784700 -0500
+@@ -11,7 +11,7 @@
+ 
+ #include "hz/hz_config.h"  // CONFIG_*
+ 
+-#if defined CONFIG_KERNEL_LINUX
++#if defined CONFIG_KERNEL_LINUX || defined __CYGWIN__
+ 
+ 
+ #include <algorithm>  // std::find
+--- origsrc/gsmartcontrol-0.8.7/src/applib/storage_detector_linux.h	2012-08-10 04:14:36.000000000 -0500
++++ src/gsmartcontrol-0.8.7/src/applib/storage_detector_linux.h	2013-07-05 18:54:18.691110000 -0500
+@@ -14,7 +14,7 @@
+ 
+ #include "hz/hz_config.h"  // CONFIG_*
+ 
+-#if defined CONFIG_KERNEL_LINUX
++#if defined CONFIG_KERNEL_LINUX || defined __CYGWIN__
+ 
+ 
+ #include <string>
+--- origsrc/gsmartcontrol-0.8.7/src/applib/storage_detector_win32.cpp	2012-08-10 04:15:20.000000000 -0500
++++ src/gsmartcontrol-0.8.7/src/applib/storage_detector_win32.cpp	2013-07-05 18:51:49.382570100 -0500
+@@ -11,7 +11,7 @@
+ 
+ #include "hz/hz_config.h"  // CONFIG_*
+ 
+-#if defined CONFIG_KERNEL_FAMILY_WINDOWS
++#if defined _WIN32
+ 
+ 
+ #include <windows.h>  // CreateFileA(), CloseHandle(), etc...
+--- origsrc/gsmartcontrol-0.8.7/src/gsc_settings.h	2012-08-10 04:18:00.000000000 -0500
++++ src/gsmartcontrol-0.8.7/src/gsc_settings.h	2013-07-05 18:50:30.598063900 -0500
+@@ -32,7 +32,7 @@ inline void init_default_settings()
+ 
+ 
+ #ifndef _WIN32
+-	rconfig::set_default_data("system/smartctl_binary", "smartctl");  // must be in PATH or use absolute path.
++	rconfig::set_default_data("system/smartctl_binary", "/usr/sbin/smartctl");  // must be in PATH or use absolute path.
+ 	rconfig::set_default_data("system/tw_cli_binary", "tw_cli");  // must be in PATH or use absolute path.
+ #else
+ 	rconfig::set_default_data("system/smartctl_binary", "smartctl-nc.exe");  // use no-console version by default.
