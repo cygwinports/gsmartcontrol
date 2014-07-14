@@ -1,6 +1,6 @@
 NAME="gsmartcontrol"
 VERSION=0.8.7
-RELEASE=1
+RELEASE=2
 CATEGORY="System"
 SUMMARY="GUI for smartmontools"
 DESCRIPTION="GSmartControl is a graphical user interface for smartctl (from
@@ -10,6 +10,17 @@ drives. It allows you to inspect the drive's SMART data to determine its
 health, as well as run various tests on it."
 HOMEPAGE="http://gsmartcontrol.sourceforge.net/"
 SRC_URI="mirror://sourceforge/gsmartcontrol/gsmartcontrol-${VERSION}.tar.bz2"
-PATCH_URI="0.8.7-cygwin.patch"
+PATCH_URI="
+	http://pkgs.fedoraproject.org/cgit/gsmartcontrol.git/plain/gsmartcontrol-0.8.7-console-helper.patch
+	0.8.7-cygwin.patch
+	0.8.7-system-pcrecpp.patch
+"
 
 gsmartcontrol_REQUIRES="smartmontools"
+
+src_install() {
+	cd ${B}
+	cyginstall
+
+	rm -f ${D}/usr/bin/*-root ${D}/usr/share/man/man1/*-root.*
+}

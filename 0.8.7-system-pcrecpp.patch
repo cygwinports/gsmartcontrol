@@ -1,0 +1,95 @@
+--- origsrc/gsmartcontrol-0.8.7/configure.ac	2012-08-10 10:56:01.000000000 -0500
++++ src/gsmartcontrol-0.8.7/configure.ac	2014-07-13 23:01:59.316743400 -0500
+@@ -229,16 +229,16 @@ PCRE_CFLAGS="";
+ PCRE_LIBS="";
+ 
+ # try pkg-config first
+-PKG_CHECK_MODULES(PCRE, [libpcre], [pcre_found=yes], [pcre_found=no])
++PKG_CHECK_MODULES(PCRE, [libpcrecpp], [pcre_found=yes], [pcre_found=no])
+ 
+ # if not found, try pcre-config (solaris had it but not pkg-config).
+ if test "x$pcre_found" = "xno"; then
+ 	AC_PATH_PROG(pcre_config_binary, [pcre-config])
+ 	if test "x$pcre_config_binary" != "x"; then
+ 		PCRE_CFLAGS="`pcre-config --cflags`"
+-		PCRE_LIBS="`pcre-config --libs`"
++		PCRE_LIBS="`pcre-config --libs-cpp`"
+ 	else
+-		# AC_MSG_ERROR([Could not find pcre through pkg-config and pcre-config. Make sure the pcre libraries are installed])
++		# AC_MSG_ERROR([Could not find pcrecpp through pkg-config and pcre-config. Make sure the pcrecpp libraries are installed])
+ 		AC_MSG_ERROR([$PCRE_PKG_ERRORS])
+ 	fi
+ fi
+@@ -445,8 +445,7 @@ CXXFLAGS="$CXXFLAGS $ADDITIONAL_FLAGS"
+ # Add global configuration file. Note: It must be searched in top_builddir
+ # first (that's why -I is the first flag), for precompiled headers to work.
+ 
+-# Add pcrecpp too, because its files use #<file> on each other.
+-ADDITIONAL_INCLUDES="-I\$(top_builddir) -I\$(top_srcdir)/src -I\$(top_srcdir)/src/pcrecpp"
++ADDITIONAL_INCLUDES="-I\$(top_builddir) -I\$(top_srcdir)/src"
+ 
+ # -include works with gcc, intel, pathscale and sunstudio since 12u1, but doesn't work
+ # with pgi and older sunstudio (the one in solaris10, for example).
+@@ -542,7 +541,7 @@ AC_CONFIG_FILES([data/gsmartcontrol-root
+ # these are all the makefiles to generate
+ 
+ AC_CONFIG_FILES([Makefile src/Makefile src/applib/Makefile src/res/Makefile src/hz/Makefile \
+-	src/libdebug/Makefile src/pcrecpp/Makefile src/rconfig/Makefile src/rmn/Makefile \
++	src/libdebug/Makefile src/rconfig/Makefile src/rmn/Makefile \
+ 	data/Makefile data/16/Makefile data/22/Makefile data/24/Makefile data/32/Makefile \
+ 	data/48/Makefile data/64/Makefile data/128/Makefile data/256/Makefile data/nsis/Makefile \
+ 	debian.dist/Makefile])
+--- origsrc/gsmartcontrol-0.8.7/src/Makefile.am	2011-11-20 04:05:38.000000000 -0600
++++ src/gsmartcontrol-0.8.7/src/Makefile.am	2014-07-13 22:59:08.646828300 -0500
+@@ -1,7 +1,7 @@
+ AM_CPPFLAGS = $(all_includes)
+ METASOURCES = AUTO
+ 
+-SUBDIRS = libdebug hz rmn rconfig pcrecpp applib res
++SUBDIRS = libdebug hz rmn rconfig applib res
+ 
+ 
+ if TARGET_OS_KERNEL_FAMILY_WINDOWS
+@@ -27,7 +27,7 @@ noinst_DATA = gsc_winres.rc.in gsmartcon
+ bin_PROGRAMS = gsmartcontrol
+ 
+ gsmartcontrol_LDADD = $(top_builddir)/src/applib/libapplib.a \
+-	$(top_builddir)/src/pcrecpp/libpcrecpp.a $(top_builddir)/src/libdebug/libdebug.a \
++	$(top_builddir)/src/libdebug/libdebug.a \
+ 	$(top_builddir)/src/res/libres.a $(WINRES_OBJ)
+ 
+ noinst_HEADERS = global_macros.h gsc_about_dialog.h gsc_add_device_window.h gsc_executor_error_dialog.h \
+--- origsrc/gsmartcontrol-0.8.7/src/applib/Makefile.am	2011-11-20 04:05:38.000000000 -0600
++++ src/gsmartcontrol-0.8.7/src/applib/Makefile.am	2014-07-13 23:03:13.334916400 -0500
+@@ -26,16 +26,16 @@ smartctl_executor_test_LDADD = libapplib
+ 
+ smartctl_parser_test_SOURCES = smartctl_parser_test.cpp
+ smartctl_parser_test_LDADD = libapplib.a \
+-	$(top_builddir)/src/pcrecpp/libpcrecpp.a $(top_builddir)/src/libdebug/libdebug.a
++	$(top_builddir)/src/libdebug/libdebug.a
+ 
+ storage_detector_test_SOURCES = storage_detector_test.cpp
+ storage_detector_test_LDADD = libapplib.a \
+-	$(top_builddir)/src/pcrecpp/libpcrecpp.a $(top_builddir)/src/libdebug/libdebug.a
++	$(top_builddir)/src/libdebug/libdebug.a
+ 
+ spawn_test_SOURCES = spawn_test.cpp
+ 
+ # Build them first
+-SUBDIRS=../libdebug ../pcrecpp
++SUBDIRS=../libdebug
+ 
+ 
+ # we don't list them in a separate variable because otherwise kdevelop won't see them.
+--- origsrc/gsmartcontrol-0.8.7/src/applib/app_pcrecpp.h	2012-01-11 10:57:58.000000000 -0600
++++ src/gsmartcontrol-0.8.7/src/applib/app_pcrecpp.h	2014-07-13 23:03:46.057033100 -0500
+@@ -20,8 +20,7 @@
+ #endif
+ 
+ 
+-#include "pcrecpp/pcrecpp_internal.h"
+-#include "pcrecpp/pcrecpp.h"
++#include <pcrecpp.h>
+ 
+ #include <string>
+ #include "hz/debug.h"
